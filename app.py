@@ -13,6 +13,7 @@ filePath = '/home/dylan/Desktop/data.txt'
 
 # Get http://127.0.0.1:5000/config/dylan-xps
 # Post http://127.0.0.1:5000/api/v1.0/keepalive/dylan-xps with EPOCH time in body
+# Post http://127.0.0.1:5000/api/v1.0/monitor/dylan-xps with json monitor data in body
 
 
 @app.route('/config/<string:host_name>', methods=['GET'])

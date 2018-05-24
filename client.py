@@ -53,13 +53,13 @@ while True:
         test_result = requests.get('https://google.com')
         json_data = {"http": test_result.elapsed.total_seconds()}
 
-        monitor_uri = base_uri + '/api/v1.0/monitor/' + node_name
+        monitor_uri = base_uri + '/api/v1.0/send_monitor/' + node_name
         monitor_result = requests.post(monitor_uri, json=json_data)
 
     if host_config['cpu']:
         json_data = {"cpu": psutil.cpu_percent()}
 
-        monitor_uri = base_uri + '/api/v1.0/monitor/' + node_name
+        monitor_uri = base_uri + '/api/v1.0/send_monitor/' + node_name
         monitor_result = requests.post(monitor_uri, json=json_data)
 
     if host_config['mem']:
@@ -67,7 +67,7 @@ while True:
         json_data = {"mem_free": mem_data.free, "mem_total": mem_data.total, "mem_cached": mem_data.cached,
                      "mem_used": mem_data.used}
 
-        monitor_uri = base_uri + '/api/v1.0/monitor/' + node_name
+        monitor_uri = base_uri + '/api/v1.0/send_monitor/' + node_name
         monitor_result = requests.post(monitor_uri, json=json_data)
 
     print("Sleeping for 10 seconds")

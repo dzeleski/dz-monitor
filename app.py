@@ -9,11 +9,10 @@ mdb_con_str = 'mongodb://localhost/'
 client = MongoClient(mdb_con_str)
 mdb = client.config
 
-filePath = '/home/dylan/Desktop/data.txt'
-
 # Get http://127.0.0.1:5000/config/dylan-xps
 # Post http://127.0.0.1:5000/api/v1.0/keepalive/dylan-xps with EPOCH time in body
-# Post http://127.0.0.1:5000/api/v1.0/monitor/dylan-xps with json monitor data in body
+# Post http://127.0.0.1:5000/api/v1.0/send_monitor/dylan-xps with json monitor data in body
+# Post http://127.0.0.1:5000/api/v1.0/get_monitor/dylan-xps with json {"query": ["http"]}
 
 
 @app.route('/config/<string:host_name>', methods=['GET'])
@@ -49,7 +48,7 @@ def send_keepalive(host_name):
                         mimetype='application/json')
 
 
-@app.route('/api/v1.0/monitor/<string:host_name>', methods=['POST'])
+@app.route('/api/v1.0/send_monitor/<string:host_name>', methods=['POST'])
 def send_monitor(host_name):
     host_monitor = mdb.monitor.find_one({'_id': host_name})
 
@@ -81,15 +80,26 @@ def send_monitor(host_name):
                         mimetype='application/json')
 
 
-@app.route('/api/v1.0/send', methods=['POST'])
-def send_data():
-    date = datetime.datetime.now().strftime("%y-%m-%d-%H-%M-%s")
-    file = open(filePath, 'a')
-    data = request.data.decode("utf-8")
-    file.write(date + ',' + data + '\n')
-    file.close()
-    return Response('{"Success": true}', status=201,
-                    mimetype='application/json')
+@app.route('/api/v1.0/get_monitor/<string:host_name>', methods=['POST'])
+def get_monitor(host_name):
+    json = request.get_json()
+
+    if 'query' in json:
+
+        search_query = {'_id': host_name}
+        projection = {}
+
+        for k in json['query']:
+            projection[k] = 1
+
+        data = mdb.monitor.find_one(search_query, projection)
+
+        return jsonify(data)
+
+    else:
+
+        return Response('{"BadData": true}', status=400,
+                        mimetype='application/json')
 
 
 if __name__ == '__main__':

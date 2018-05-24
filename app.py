@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request, Response
-import datetime, os
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -30,9 +29,11 @@ def get_config(host_name):
 def send_keepalive(host_name):
     host_keepalive = mdb.keepalive.find_one({'_id': host_name})
 
-    try:
-        date = int(request.data.decode("utf-8"))
-    except ValueError:
+    json_data = request.get_json()
+
+    if 'epoch' in json_data:
+        date = int(json_data['epoch'])
+    else:
         return Response('{"BadData": true}', status=400,
                         mimetype='application/json')
 
@@ -50,7 +51,6 @@ def send_keepalive(host_name):
 
 @app.route('/api/v1.0/send_monitor/<string:host_name>', methods=['POST'])
 def send_monitor(host_name):
-    host_monitor = mdb.monitor.find_one({'_id': host_name})
 
     json = request.get_json()
 
@@ -58,26 +58,15 @@ def send_monitor(host_name):
         return Response('{"BadData": true}', status=400,
                         mimetype='application/json')
 
-    if not host_monitor:
-        temp_dict = {'_id': host_name}
+    temp_dict = {}
 
-        for key, value in json.items():
-            temp_dict[key] = [value]
+    for key, value in json.items():
+        temp_dict[key] = {'$each': [value], '$slice': -60}
 
-        insert_result = mdb.monitor.insert_one(temp_dict)
+    update_result = mdb.monitor.update_one({'_id': host_name}, {'$push': temp_dict}, upsert=True)
 
-        return Response('{"Created": true}', status=201,
-                        mimetype='application/json')
-    else:
-        temp_dict = {}
-
-        for key, value in json.items():
-            temp_dict[key] = {'$each': [value], '$slice': -60}
-
-        update_result = mdb.monitor.update_one({'_id': host_name}, {'$push': temp_dict})
-
-        return Response('{"Updated": true}', status=201,
-                        mimetype='application/json')
+    return Response('{"Updated": true}', status=201,
+                    mimetype='application/json')
 
 
 @app.route('/api/v1.0/get_monitor/<string:host_name>', methods=['POST'])

@@ -44,10 +44,10 @@ def send_monitor_data(uri, js):
 
 while True:
     host_config = get_current_config()
-    epoch = str(int(time.time()))
+    epoch = {"epoch": str(int(time.time()))}
 
     keepalive_uri = base_uri + '/api/v1.0/keepalive/' + node_name
-    keepalive = requests.post(keepalive_uri, data=epoch)
+    keepalive = requests.post(keepalive_uri, json=epoch)
 
     if host_config['http']:
         test_result = requests.get('https://google.com')

@@ -63,7 +63,7 @@ def send_monitor(host_name):
         temp_dict = {'_id': host_name}
 
         for key, value in json.items():
-            temp_dict[key] = value
+            temp_dict[key] = [value]
 
         insert_result = mdb.monitor.insert_one(temp_dict)
 
@@ -73,9 +73,9 @@ def send_monitor(host_name):
         temp_dict = {}
 
         for key, value in json.items():
-            temp_dict[key] = value
+            temp_dict[key] = {'$each': [value], '$slice': -60}
 
-        update_result = mdb.monitor.update_one({'_id': host_name}, {'$set': temp_dict})
+        update_result = mdb.monitor.update_one({'_id': host_name}, {'$push': temp_dict})
 
         return Response('{"Updated": true}', status=201,
                         mimetype='application/json')
